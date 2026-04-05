@@ -242,6 +242,12 @@
       gap: 18px;
     }
 
+    .grid-1 {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 18px;
+    }
+
     .info-card {
       padding: 24px;
     }
@@ -329,7 +335,7 @@
     }
 
     @media (max-width: 920px) {
-      .hero-grid, .grid-3, .grid-2 {
+      .hero-grid, .grid-3, .grid-2, .grid-1 {
         grid-template-columns: 1fr;
       }
 
@@ -448,7 +454,7 @@
           </div>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-1">
           <div class="card info-card">
             <h3>Com confirmar</h3>
             <p class="muted">
