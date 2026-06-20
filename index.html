@@ -436,7 +436,49 @@
       .hero-copy { padding: 32px; }
       .section-head { align-items: start; flex-direction: column; }
     }
-    @media (max-width: 820px) { nav { display: none; } .hero { padding-top: 32px; } }
+    /* ── Menú hamburguesa mòbil ── */
+    .hamburger {
+      display: none; flex-direction: column; justify-content: center; gap: 5px;
+      width: 42px; height: 42px; background: rgba(255,255,255,0.72);
+      border: 1.5px solid rgba(118,111,97,0.14); border-radius: 12px;
+      cursor: pointer; padding: 8px; flex-shrink: 0;
+    }
+    .hamburger span {
+      display: block; height: 2px; background: var(--ink); border-radius: 2px;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none; position: fixed; inset: 0; top: 0; z-index: 29;
+      background: rgba(246,242,233,0.97); backdrop-filter: blur(16px);
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; padding: 80px 24px 40px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      display: block; width: 100%; text-align: center;
+      padding: 16px 24px; border-radius: 16px; font-size: 1.1rem; font-weight: 700;
+      color: var(--ink); background: rgba(255,255,255,0.8);
+      border: 1.5px solid rgba(118,111,97,0.12);
+      transition: background .2s ease;
+    }
+    .mobile-menu a:hover { background: var(--accent-soft); }
+    .mobile-menu-close {
+      position: fixed; top: 16px; right: 16px;
+      width: 42px; height: 42px; border-radius: 12px;
+      background: rgba(255,255,255,0.72); border: 1.5px solid rgba(118,111,97,0.14);
+      font-size: 1.2rem; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; font-family: inherit; color: var(--ink);
+    }
+
+    @media (max-width: 820px) {
+      nav { display: none; }
+      .hamburger { display: flex; }
+      .hero { padding-top: 32px; }
+    }
     @media (max-width: 560px) {
       .container { width: min(calc(100% - 20px), var(--max)); }
       .hero-copy, .hero-side, .info-card { padding-left: 20px; padding-right: 20px; }
@@ -456,13 +498,25 @@
     <nav>
       <ul>
         <li><a href="#programa">🎉 Programa</a></li>
-        <li><a href="#galeria">📸 Galeria</a></li>
+        <li id="nav-galeria" style="display:none"><a href="#galeria">📸 Galeria</a></li>
         <li><a href="#informacio">Informació general</a></li>
         <li><a href="#recordatoris">Temes importants</a></li>
       </ul>
     </nav>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
+
+<!-- Menú mòbil -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-menu-close" onclick="closeMobileMenu()">✕</button>
+  <a href="#programa" onclick="closeMobileMenu()">🎉 Programa</a>
+  <a href="#galeria" id="mobile-nav-galeria" style="display:none" onclick="closeMobileMenu()">📸 Galeria</a>
+  <a href="#informacio" onclick="closeMobileMenu()">Informació general</a>
+  <a href="#recordatoris" onclick="closeMobileMenu()">Temes importants</a>
+</div>
 
 <main>
 
@@ -733,7 +787,7 @@
   </section>
 
   <!-- GALERIA -->
-  <section id="galeria">
+  <section id="galeria" style="display:none">
     <div class="container">
       <div class="section-head"><div><h2>📸 Galeria compartida</h2><p style="margin:6px 0 0;color:var(--muted);font-size:0.96rem;">Penja les teves fotos i comparteix els millors moments!</p></div></div>
 
@@ -1074,17 +1128,45 @@
   const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dcuv7r91b/image/upload';
   const CLOUDINARY_PRESET = 'casnoment_preset';
 
+  function compressImage(file, maxWidth, quality) {
+    return new Promise(function(resolve) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          canvas.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', quality);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function uploadPhoto(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert('La foto és massa gran (màxim 10 MB)'); return; }
+    if (file.size > 15 * 1024 * 1024) { alert('La foto és massa gran (màxim 15 MB)'); return; }
 
     const statusEl = document.getElementById('gallery-upload-status');
     statusEl.style.display = 'block';
+    statusEl.textContent = '⏳ Comprimint la foto...';
+
+    let blob;
+    try {
+      blob = await compressImage(file, 1800, 0.82);
+    } catch(e) {
+      blob = file;
+    }
+
     statusEl.textContent = '⏳ Pujant la foto...';
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', blob, 'photo.jpg');
     formData.append('upload_preset', CLOUDINARY_PRESET);
     formData.append('folder', 'casnoment');
 
@@ -1198,6 +1280,34 @@
       snap.forEach(function(d) { myPhotoLikes.add(d.data().photoId); });
     });
   });
+
+  // ── Menú hamburguesa mòbil ──
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const btn = document.getElementById('hamburgerBtn');
+    const isOpen = menu.classList.contains('open');
+    if (isOpen) { menu.classList.remove('open'); btn.classList.remove('open'); document.body.style.overflow = ''; }
+    else { menu.classList.add('open'); btn.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.getElementById('hamburgerBtn').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ── Galeria: visible 5 dies abans de l'inici ──
+  (function() {
+    const EVENT_START = new Date('2026-07-10T18:30:00');
+    const DAYS_BEFORE = 5;
+    const showFrom = new Date(EVENT_START.getTime() - DAYS_BEFORE * 24 * 60 * 60 * 1000);
+    if (new Date() >= showFrom) {
+      document.getElementById('galeria').style.display = '';
+      const navGaleria = document.getElementById('nav-galeria');
+      if (navGaleria) navGaleria.style.display = '';
+      const mobileNavGaleria = document.getElementById('mobile-nav-galeria');
+      if (mobileNavGaleria) mobileNavGaleria.style.display = '';
+    }
+  })();
 </script>
 
 </body>
