@@ -390,6 +390,47 @@
     .photo-like-btn.liked { background: #ffe4e4; border-color: #f87171; color: #b91c1c; }
     .photo-date { font-size: 0.75rem; color: var(--muted); }
 
+    /* ── Lightbox ── */
+    .lightbox-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(20, 18, 14, 0.92); backdrop-filter: blur(10px);
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .lightbox-overlay.open { display: flex; }
+    .lightbox-inner {
+      position: relative; max-width: min(90vw, 1000px); max-height: 90vh;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .lightbox-img {
+      max-width: 100%; max-height: 80vh; border-radius: 16px;
+      object-fit: contain; box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+      display: block;
+    }
+    .lightbox-close {
+      position: fixed; top: 18px; right: 22px;
+      background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.2);
+      color: white; font-size: 1.4rem; width: 44px; height: 44px;
+      border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: background .2s; line-height: 1;
+      font-family: inherit;
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,0.22); }
+    .lightbox-nav {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.2);
+      color: white; font-size: 1.4rem; width: 48px; height: 48px;
+      border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: background .2s; font-family: inherit;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.22); }
+    .lightbox-prev { left: 16px; }
+    .lightbox-next { right: 16px; }
+    .lightbox-counter {
+      color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 600;
+    }
+    .photo-card img { cursor: zoom-in; }
+
     @media (max-width: 980px) {
       .hero-grid, .grid-3, .grid-2 { grid-template-columns: 1fr; }
       .hero-copy { padding: 32px; }
@@ -762,6 +803,17 @@
 
 </main>
 
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightboxOnBg(event)">
+  <div class="lightbox-inner">
+    <img class="lightbox-img" id="lightboxImg" src="" alt="Foto ampliada" />
+    <span class="lightbox-counter" id="lightboxCounter"></span>
+  </div>
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">‹</button>
+  <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">›</button>
+</div>
+
 <!-- Modal nom -->
 <div class="modal-overlay" id="nameModal">
   <div class="modal-box">
@@ -1073,17 +1125,20 @@
     }
   }
 
+  let _galleryPhotos = [];
+
   function renderGallery(photos, myLikes) {
+    _galleryPhotos = photos;
     const grid = document.getElementById('gallery-grid');
     if (photos.length === 0) {
       grid.innerHTML = '<div class="gallery-empty">Encara no hi ha fotos. Sigues el primer en penjar-ne! 📷</div>';
       return;
     }
-    grid.innerHTML = photos.map(function(p) {
+    grid.innerHTML = photos.map(function(p, i) {
       const liked = myLikes.has(p.id);
       const date = p.createdAt ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' }) : '';
       return '<div class="photo-card">' +
-        '<img src="' + p.url + '" alt="Foto casNOment" loading="lazy" />' +
+        '<img src="' + p.url + '" alt="Foto casNOment" loading="lazy" onclick="openLightbox(' + i + ')" />' +
         '<div class="photo-card-footer">' +
           '<button class="photo-like-btn' + (liked ? ' liked' : '') + '" id="like-' + p.id + '" onclick="likePhoto(\'' + p.id + '\', this)">' +
             '❤️ <span id="likecount-' + p.id + '">' + (p.likes || 0) + '</span>' +
@@ -1093,6 +1148,40 @@
       '</div>';
     }).join('');
   }
+
+  let _lightboxIndex = 0;
+
+  function openLightbox(index) {
+    _lightboxIndex = index;
+    const photo = _galleryPhotos[index];
+    document.getElementById('lightboxImg').src = photo.url;
+    document.getElementById('lightboxCounter').textContent = (index + 1) + ' / ' + _galleryPhotos.length;
+    document.getElementById('lightboxOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightboxOverlay').classList.remove('open');
+    document.getElementById('lightboxImg').src = '';
+    document.body.style.overflow = '';
+  }
+
+  function closeLightboxOnBg(e) {
+    if (e.target === document.getElementById('lightboxOverlay')) closeLightbox();
+  }
+
+  function lightboxNav(dir) {
+    _lightboxIndex = (_lightboxIndex + dir + _galleryPhotos.length) % _galleryPhotos.length;
+    openLightbox(_lightboxIndex);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    const lb = document.getElementById('lightboxOverlay');
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') lightboxNav(1);
+    if (e.key === 'ArrowLeft') lightboxNav(-1);
+  });
 
   let myPhotoLikes = new Set();
 
