@@ -133,6 +133,43 @@
     .mini-block h3 { margin: 0 0 6px; font-size: 0.82rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); }
     .mini-block p { margin: 0; color: var(--ink); font-weight: 600; }
 
+    /* ── Comptador ── */
+    .countdown-block {
+      padding: 20px 20px 18px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(227,200,75,0.18), rgba(140,166,78,0.12));
+      border: 1.5px solid rgba(227,200,75,0.4);
+      position: relative; overflow: hidden;
+    }
+    .countdown-block::before {
+      content: ""; position: absolute; inset: 0 auto 0 0; width: 5px;
+      background: linear-gradient(180deg, var(--sun), var(--accent)); border-radius: 10px;
+    }
+    .countdown-block h3 {
+      margin: 0 0 12px; font-size: 0.78rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--accent-strong);
+    }
+    .countdown-units {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    }
+    .countdown-unit {
+      display: flex; flex-direction: column; align-items: center;
+      background: rgba(255,255,255,0.72); border-radius: 12px;
+      padding: 8px 4px 6px; border: 1px solid rgba(227,200,75,0.3);
+    }
+    .countdown-num {
+      font-size: 1.5rem; font-weight: 900; line-height: 1;
+      color: var(--ink); letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+    .countdown-label {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); margin-top: 3px;
+    }
+    .countdown-done {
+      font-size: 1.1rem; font-weight: 800; color: var(--accent-strong);
+      text-align: center; padding: 6px 0;
+    }
+
     .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
     .section-head h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -0.04em; line-height: 1; }
 
@@ -206,7 +243,6 @@
       padding: 3px 10px; border-radius: 999px; flex-shrink: 0;
     }
 
-    /* descripció visible per defecte */
     .event-desc {
       font-size: 0.88rem; color: var(--muted); margin: 0 0 11px; line-height: 1.55;
       border-left: 3px solid var(--accent-soft);
@@ -248,7 +284,6 @@
     .participation-btn:hover { background: var(--accent-soft); }
     .participation-btn.joined { background: var(--accent); color: white; border-color: var(--accent-strong); }
 
-    /* participants list pill */
     .participants-list {
       font-size: 0.78rem; color: var(--muted); margin-top: 6px;
       display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
@@ -344,6 +379,18 @@
         </div>
       </div>
       <div class="card hero-side">
+        <!-- COMPTADOR -->
+        <div class="countdown-block">
+          <h3>⏳ Temps que queda</h3>
+          <div id="countdown-display">
+            <div class="countdown-units">
+              <div class="countdown-unit"><span class="countdown-num" id="cd-days">--</span><span class="countdown-label">Dies</span></div>
+              <div class="countdown-unit"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-label">Hores</span></div>
+              <div class="countdown-unit"><span class="countdown-num" id="cd-mins">--</span><span class="countdown-label">Minuts</span></div>
+              <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-label">Segons</span></div>
+            </div>
+          </div>
+        </div>
         <div class="mini-block"><h3>DATES</h3><p>Del 10 al 12 de juliol del 2026</p></div>
         <div class="mini-block"><h3>LOCALITZACIÓ</h3><p>Masia Cal Riera, Puig-reig (Berguedà)</p></div>
         <div class="mini-block"><h3>DRESSCODE</h3><p>Cap. Cadascú que vesteixi com vulgui!</p></div>
@@ -593,7 +640,7 @@
       <div class="grid-2">
         <div class="card info-card">
           <h3>UBICACIÓ</h3>
-          <p class="muted"><strong>Lloc:</strong> Masia Cal Riera</p>
+          <p class="muted"><strong>Lloc:</strong> Massia Cal Riera</p>
           <p class="muted"><strong>Adreça:</strong> C-1411z, 480, 08692 Puig-Reig</p>
           <div class="cta-row"><a class="btn btn-secondary" href="https://maps.app.goo.gl/gJd9LvuP1UgREVRN6">Obrir mapa</a></div>
         </div>
@@ -647,6 +694,33 @@
 </div>
 
 <script>
+  // ── Comptador de compte enrere ──
+  const TARGET = new Date('2026-07-10T18:30:00');
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      document.getElementById('countdown-display').innerHTML =
+        '<div class="countdown-done">🎉 Ja ha començat el casNOment!</div>';
+      return;
+    }
+
+    const days  = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins  = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs  = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById('cd-days').textContent  = String(days).padStart(2, '0');
+    document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('cd-mins').textContent  = String(mins).padStart(2, '0');
+    document.getElementById('cd-secs').textContent  = String(secs).padStart(2, '0');
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
   // ── Firebase ──
   const firebaseConfig = {
     apiKey: "AIzaSyAKu0wmegk1YBrwJwtyFEswnGD_4DsLmpQ",
@@ -669,11 +743,9 @@
     else pendingActions.push(fn);
   }
 
-  // ── Autenticació anònima automàtica (sense cap interacció de l'usuari) ──
   auth.signInAnonymously().then(async cred => {
     userId = cred.user.uid;
 
-    // Sincronitzar participacions reals des de Firestore
     const partSnap = await db.collection('participations')
       .where('userId', '==', userId).get();
     partSnap.forEach(doc => {
@@ -682,7 +754,6 @@
       if (btn) btn.classList.add('joined');
     });
 
-    // Sincronitzar reaccions reals des de Firestore
     const reactSnap = await db.collection('reactions')
       .where('userId', '==', userId).get();
     reactSnap.forEach(doc => {
@@ -696,7 +767,6 @@
     pendingActions = [];
   }).catch(err => console.error('Auth error:', err));
 
-  // ── Llista d'events ──
   const eventIds = [
     'div10-1','div10-2','div10-3','div10-4','div10-5',
     'dis11-1','dis11-2','dis11-3','dis11-4','dis11-5',
@@ -711,7 +781,6 @@
     { key: 'love',  emoji: '😍' }
   ];
 
-  // ── Activitats amb botó "Hi vull participar" ──
   const participationActivities = [
     'Concurs de truites',
     'Taller de Còctels',
@@ -719,17 +788,15 @@
     'Taller de Katas de Taekwondo',
     'Taller de Salsa i Bachata',
     'Nit de micro obert',
-    'Classe d\'Aquagym',
+    "Classe d'Aquagym",
     'Vermut i Bingo Musical',
     'Paellada Popular'
   ];
 
-  // ── Construir botons d'interacció ──
   eventIds.forEach(id => {
     const container = document.getElementById('int-' + id);
     if (!container) return;
 
-    // Botó participació (només per activitats seleccionades)
     const card = container.closest('.event-card');
     const titleEl = card ? card.querySelector('.event-title') : null;
     const actTitle = titleEl ? titleEl.textContent.trim() : '';
@@ -744,7 +811,6 @@
       container.appendChild(pBtn);
     }
 
-    // Botons reacció
     emojis.forEach(function(e) {
       const btn = document.createElement('button');
       btn.className = 'reaction-btn';
@@ -754,7 +820,6 @@
       container.appendChild(btn);
     });
 
-    // Listener temps real per comptadors globals
     db.collection('activities').doc(id).onSnapshot(function(doc) {
       const data = doc.exists ? doc.data() : {};
       const pcountEl = document.getElementById('pcount-' + id);
@@ -765,7 +830,6 @@
       });
     });
 
-    // Listener temps real per llista de participants
     db.collection('participations').where('actId', '==', id).onSnapshot(function(snap) {
       const listEl = document.getElementById('plist-' + id);
       if (!listEl) return;
@@ -786,25 +850,19 @@
     });
   });
 
-  // ── Participació ──
   async function toggleParticipation(id) {
     if (!authReady) { whenReady(() => toggleParticipation(id)); return; }
     const ref = db.collection('participations').doc(userId + '_' + id);
     const actRef = db.collection('activities').doc(id);
     const btn = document.getElementById('pbtn-' + id);
-
-    // Llegim estat real de Firestore
     const doc = await ref.get();
-
     if (doc.exists) {
-      // Des-apuntar
       await ref.delete();
       await actRef.set({ participants: firebase.firestore.FieldValue.increment(-1) }, { merge: true });
       btn.classList.remove('joined');
     } else {
-      // Apuntar: demanar nom si no el tenim
       const name = await askName();
-      if (!name) return; // usuari ha cancel·lat
+      if (!name) return;
       await ref.set({ userId: userId, actId: id, name: name, ts: Date.now() });
       await actRef.set({ participants: firebase.firestore.FieldValue.increment(1) }, { merge: true });
       btn.classList.add('joined');
@@ -812,16 +870,12 @@
     animatePop(btn);
   }
 
-  // ── Reaccions ──
   async function toggleReaction(id, key, emoji) {
     if (!authReady) { whenReady(() => toggleReaction(id, key, emoji)); return; }
     const ref = db.collection('reactions').doc(userId + '_' + id + '_' + key);
     const actRef = db.collection('activities').doc(id);
     const btn = document.getElementById('rbtn-' + id + '-' + key);
-
-    // Llegim estat real de Firestore
     const doc = await ref.get();
-
     if (doc.exists) {
       await ref.delete();
       await actRef.set({ [key]: firebase.firestore.FieldValue.increment(-1) }, { merge: true });
@@ -834,13 +888,11 @@
     animatePop(btn);
   }
 
-  // ── Modal nom ──
   let _nameResolve = null;
 
   function askName() {
     return new Promise(function(resolve) {
       _nameResolve = resolve;
-      // Si ja tenim el nom guardat, no cal demanar-lo
       const saved = localStorage.getItem('casnoment-username');
       if (saved) { resolve(saved); return; }
       document.getElementById('nameInput').value = '';
@@ -857,7 +909,6 @@
   function confirmParticipation() {
     const name = document.getElementById('nameInput').value.trim();
     if (!name) { document.getElementById('nameInput').focus(); return; }
-    // Guardem el nom per no tornar a demanar-lo
     localStorage.setItem('casnoment-username', name);
     document.getElementById('nameModal').classList.remove('open');
     if (_nameResolve) { _nameResolve(name); _nameResolve = null; }
@@ -871,7 +922,6 @@
     if (e.target === document.getElementById('nameModal')) closeModal();
   });
 
-  // ── Animació pop ──
   function animatePop(btn) {
     btn.classList.remove('pop');
     void btn.offsetWidth;
@@ -879,7 +929,6 @@
     btn.addEventListener('animationend', function() { btn.classList.remove('pop'); }, { once: true });
   }
 
-  // ── Canvi de dia ──
   function showDay(day, tabEl) {
     document.querySelectorAll('.day-panel').forEach(function(p) { p.classList.remove('active'); });
     document.querySelectorAll('.day-tab').forEach(function(t) { t.classList.remove('active'); });
