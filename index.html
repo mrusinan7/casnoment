@@ -199,11 +199,17 @@
     }
     .event-card:hover { box-shadow: 0 8px 28px rgba(48,43,32,0.1); transform: translateY(-1px); }
 
-    .event-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 5px; flex-wrap: wrap; }
-    .event-title { font-weight: 800; font-size: 0.98rem; color: var(--ink); }
+    .event-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+    .event-title { font-weight: 800; font-size: 1rem; color: var(--ink); }
     .event-badge {
       font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
       padding: 3px 10px; border-radius: 999px; flex-shrink: 0;
+    }
+
+    .event-desc {
+      font-size: 0.88rem; color: var(--muted); margin: 0 0 11px; line-height: 1.55;
+      border-left: 3px solid var(--accent-soft);
+      padding-left: 10px;
     }
 
     .badge-benvinguda { background: rgba(227,200,75,0.18); color: #7a5f00; }
@@ -217,9 +223,7 @@
     .badge-sortida    { background: rgba(200,180,160,0.18); color: #6a5040; }
     .badge-joc        { background: rgba(220,140,180,0.18); color: #7a2a50; }
 
-    .event-desc { font-size: 0.88rem; color: var(--muted); margin: 0 0 11px; line-height: 1.5; }
-
-    .interactions { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); margin-top: 10px; }
+    .interactions { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); margin-top: 4px; }
 
     .reaction-btn {
       display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px;
@@ -243,6 +247,15 @@
     .participation-btn:hover { background: var(--accent-soft); }
     .participation-btn.joined { background: var(--accent); color: white; border-color: var(--accent-strong); }
 
+    .participants-list {
+      font-size: 0.78rem; color: var(--muted); margin-top: 6px;
+      display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+    }
+    .participant-pill {
+      background: var(--accent-soft); color: var(--accent-strong);
+      border-radius: 999px; padding: 2px 10px; font-weight: 700; font-size: 0.75rem;
+    }
+
     @keyframes pop {
       0%   { transform: scale(1); }
       40%  { transform: scale(1.35); }
@@ -250,6 +263,37 @@
       100% { transform: scale(1); }
     }
     .pop { animation: pop .3s ease; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(42,42,36,0.45); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--paper-solid); border-radius: var(--radius);
+      box-shadow: 0 32px 80px rgba(42,42,36,0.22); padding: 36px 32px 28px;
+      width: min(420px, calc(100vw - 32px)); position: relative;
+    }
+    .modal-box h3 { margin: 0 0 6px; font-size: 1.2rem; }
+    .modal-box p  { margin: 0 0 20px; color: var(--muted); font-size: 0.92rem; }
+    .modal-input {
+      width: 100%; padding: 13px 16px; border-radius: 14px;
+      border: 1.5px solid var(--line); font-size: 1rem; font-family: inherit;
+      background: white; color: var(--ink); outline: none; margin-bottom: 16px;
+      transition: border-color .2s;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-cancel {
+      padding: 11px 20px; border-radius: 12px; border: 1.5px solid var(--line);
+      background: white; color: var(--muted); font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .modal-confirm {
+      padding: 11px 22px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: white; font-weight: 800; cursor: pointer; font-family: inherit;
+    }
 
     @media (max-width: 980px) {
       .hero-grid, .grid-3, .grid-2 { grid-template-columns: 1fr; }
@@ -271,7 +315,7 @@
 <header>
   <div class="container nav">
     <div class="brand">
-      <img src="logo.png" alt="casNOment 11/07/2026" style="height: auto; width: 150px;" />
+      <img src="logo gran.png" alt="casNOment 11/07/2026" style="height: auto; width: 150px;" />
     </div>
     <nav>
       <ul>
@@ -289,7 +333,7 @@
   <section class="hero">
     <div class="container hero-grid">
       <div class="card hero-copy">
-        <img src="logo.png" alt="casNOment 11/07/2026" style="max-width: 380px; width: 100%; height: auto; margin-bottom: 18px;" />
+        <img src="logo gran.png" alt="casNOment 11/07/2026" style="max-width: 380px; width: 100%; height: auto; margin-bottom: 18px;" />
         <p class="lead">Una celebració de parella de fet sense boda convencional. Aquí trobaràs tota la informació que necessites saber.</p>
         <div class="cta-row">
           <a class="btn btn-primary" href="#programa">Veure el programa 🎉</a>
@@ -321,46 +365,51 @@
 
           <div class="event-row">
             <div class="event-time">18:30</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Arribada i benvinguda">
               <div class="event-header"><span class="event-title">🏡 Arribada i benvinguda</span><span class="event-badge badge-benvinguda">Benvinguda</span></div>
               <p class="event-desc">Aneu arribant, instal·leu-vos a les habitacions i poseu-vos còmodes. El cap de setmana comença!</p>
-              <div class="interactions" id="int-div10-1"></div>
+              <div class="interactions" id="int-Arribada i benvinguda"></div>
+              <div class="participants-list" id="plist-Arribada i benvinguda"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">20:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Concurs de truites">
               <div class="event-header"><span class="event-title">🍳 Concurs de truites</span><span class="event-badge badge-concurs">Concurs</span></div>
               <p class="event-desc">Anima't a participar portant la teva millor truita. Hi haurà premi per a la guanyadora!</p>
-              <div class="interactions" id="int-div10-2"></div>
+              <div class="interactions" id="int-Concurs de truites"></div>
+              <div class="participants-list" id="plist-Concurs de truites"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">21:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Sopar de Carmanyola">
               <div class="event-header"><span class="event-title">🧺 Sopar de Carmanyola</span><span class="event-badge badge-menjar">Menjar</span></div>
               <p class="event-desc">Porta la teva carmanyola i entre totes fem el sopar. Un sopar col·lectiu on cada plat és una sorpresa!</p>
-              <div class="interactions" id="int-div10-3"></div>
+              <div class="interactions" id="int-Sopar de Carmanyola"></div>
+              <div class="participants-list" id="plist-Sopar de Carmanyola"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">22:30</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Taller de Còctels">
               <div class="event-header"><span class="event-title">🍹 Taller de Còctels</span><span class="event-badge badge-taller">Taller</span></div>
               <p class="event-desc">Aprèn a preparar còctels de la mà dels nostres bartenders improvisats. El millor còctel guanya el respecte etern del grup.</p>
-              <div class="interactions" id="int-div10-4"></div>
+              <div class="interactions" id="int-Taller de Còctels"></div>
+              <div class="participants-list" id="plist-Taller de Còctels"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">23:30</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Nit de PD · DJ Rusi">
               <div class="event-header"><span class="event-title">🎧 Nit de PD · DJ Rusi</span><span class="event-badge badge-nit">Nit</span></div>
               <p class="event-desc">El llegendari DJ Rusi pren el control. Prepara't per ballar fins que les cames demanin clemència!</p>
-              <div class="interactions" id="int-div10-5"></div>
+              <div class="interactions" id="int-Nit de PD · DJ Rusi"></div>
+              <div class="participants-list" id="plist-Nit de PD · DJ Rusi"></div>
             </div>
           </div>
 
@@ -373,91 +422,101 @@
 
           <div class="event-row">
             <div class="event-time">10:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Torneig Popular de Voley Platja">
               <div class="event-header"><span class="event-title">🏐 Torneig Popular de Voley Platja</span><span class="event-badge badge-esport">Esport</span></div>
               <p class="event-desc">Torneig obert a tots els nivells: des dels pros de la xarxa fins als que no han tocat una pilota en anys. Equips mixtos i molt de sol.</p>
-              <div class="interactions" id="int-dis11-1"></div>
+              <div class="interactions" id="int-Torneig Popular de Voley Platja"></div>
+              <div class="participants-list" id="plist-Torneig Popular de Voley Platja"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">12:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Remullada Popular">
               <div class="event-header"><span class="event-title">💦 Remullada Popular</span><span class="event-badge badge-esport">Piscina</span></div>
               <p class="event-desc">Hora de tirar-se a l'aigua! Salts, xapoteig i refrescament garantit per a tothom.</p>
-              <div class="interactions" id="int-dis11-2"></div>
+              <div class="interactions" id="int-Remullada Popular"></div>
+              <div class="participants-list" id="plist-Remullada Popular"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">13:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Dinar de Rostisseria">
               <div class="event-header"><span class="event-title">🍗 Dinar de Rostisseria</span><span class="event-badge badge-menjar">Menjar</span></div>
               <p class="event-desc">Pollastre rostit, patates i tot el que necessites per recuperar forces de cara a la tarda.</p>
-              <div class="interactions" id="int-dis11-3"></div>
+              <div class="interactions" id="int-Dinar de Rostisseria"></div>
+              <div class="participants-list" id="plist-Dinar de Rostisseria"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">15:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Migdiada Popular">
               <div class="event-header"><span class="event-title">😴 Migdiada Popular</span><span class="event-badge badge-relax">Relax</span></div>
               <p class="event-desc">Activitat oficial i obligatòria: no fer res. Hamaca, ombra, ulls tancats. La migdiada és sagrada.</p>
-              <div class="interactions" id="int-dis11-4"></div>
+              <div class="interactions" id="int-Migdiada Popular"></div>
+              <div class="participants-list" id="plist-Migdiada Popular"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">17:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Taller de Katas de Taekwondo">
               <div class="event-header"><span class="event-title">🥋 Taller de Katas de Taekwondo</span><span class="event-badge badge-taller">Taller</span></div>
               <p class="event-desc">Aprèn les bases de les katas de Taekwondo. Concentració, disciplina i moltes rialles. Cinturó blanc garantit.</p>
-              <div class="interactions" id="int-dis11-5"></div>
+              <div class="interactions" id="int-Taller de Katas de Taekwondo"></div>
+              <div class="participants-list" id="plist-Taller de Katas de Taekwondo"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">18:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Taller de Salsa i Bachata">
               <div class="event-header"><span class="event-title">💃 Taller de Salsa i Bachata</span><span class="event-badge badge-taller">Taller</span></div>
               <p class="event-desc">Escalfa els malucs! Un taller per a tots els nivells. Parelles, trios o en solitari: tothom és benvingut a la pista.</p>
-              <div class="interactions" id="int-dis11-6"></div>
+              <div class="interactions" id="int-Taller de Salsa i Bachata"></div>
+              <div class="participants-list" id="plist-Taller de Salsa i Bachata"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">19:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Pausa d'higiene">
               <div class="event-header"><span class="event-title">🚿 Pausa d'higiene</span><span class="event-badge badge-higiene">Higiene</span></div>
               <p class="event-desc">Va tocant una dutxa després de tanta activitat. Temps per posar-se guapos i guapes per al sopar de gala (o no).</p>
-              <div class="interactions" id="int-dis11-7"></div>
+              <div class="interactions" id="int-Pausa d'higiene"></div>
+              <div class="participants-list" id="plist-Pausa d'higiene"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">20:30</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Sopar de gala (o no)">
               <div class="event-header"><span class="event-title">🍕 Sopar de gala (o no)</span><span class="event-badge badge-menjar">Menjar</span></div>
               <p class="event-desc">Menjar de càtering + pizzes. Vine de gala o amb xandall, aquí no jutgem. El que importa és gaudir del sopar i la companyia.</p>
-              <div class="interactions" id="int-dis11-8"></div>
+              <div class="interactions" id="int-Sopar de gala (o no)"></div>
+              <div class="participants-list" id="plist-Sopar de gala (o no)"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">21:45</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Nit de micro obert">
               <div class="event-header"><span class="event-title">🎤 Nit de micro obert</span><span class="event-badge badge-nit">Micro obert</span></div>
               <p class="event-desc">Si vols fer un discurs, cantar una cançó o recitar un poema, és el teu moment! El micro és teu. Sense filtres, sense vergonya.</p>
-              <div class="interactions" id="int-dis11-9"></div>
+              <div class="interactions" id="int-Nit de micro obert"></div>
+              <div class="participants-list" id="plist-Nit de micro obert"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">22:30</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Nit de Festa Major">
               <div class="event-header"><span class="event-title">🎆 Nit de Festa Major</span><span class="event-badge badge-nit">Festa Major</span></div>
               <p class="event-desc">Prepara't per ballar... i altres sorpreses! La nit gran del casNOment. Tot el que ha passat fins ara era l'escalfament.</p>
-              <div class="interactions" id="int-dis11-10"></div>
+              <div class="interactions" id="int-Nit de Festa Major"></div>
+              <div class="participants-list" id="plist-Nit de Festa Major"></div>
             </div>
           </div>
 
@@ -470,46 +529,51 @@
 
           <div class="event-row">
             <div class="event-time">12:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Classe d'Aquagym">
               <div class="event-header"><span class="event-title">🏊 Classe d'Aquagym</span><span class="event-badge badge-esport">Esport</span></div>
               <p class="event-desc">La millor manera de despertar el cos. Una classe d'aquagym a la piscina per activar músculs i somriures. Nivell: supervivència.</p>
-              <div class="interactions" id="int-diu12-1"></div>
+              <div class="interactions" id="int-Classe d'Aquagym"></div>
+              <div class="participants-list" id="plist-Classe d'Aquagym"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">13:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Vermut i Bingo Musical">
               <div class="event-header"><span class="event-title">🎵 Vermut i Bingo Musical</span><span class="event-badge badge-joc">Joc</span></div>
               <p class="event-desc">Vermut a la mà i orelles ben obertes! Un bingo musical on hauràs d'endevinar cançons per omplir el cartó. Premis i molt bon rotllo.</p>
-              <div class="interactions" id="int-diu12-2"></div>
+              <div class="interactions" id="int-Vermut i Bingo Musical"></div>
+              <div class="participants-list" id="plist-Vermut i Bingo Musical"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">14:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Paellada Popular">
               <div class="event-header"><span class="event-title">🥘 Paellada Popular</span><span class="event-badge badge-menjar">Menjar</span></div>
               <p class="event-desc">El dinar de comiat per excel·lència. Una paella popular per tancar el cap de setmana com es mereix: bon menjar i bona companyia.</p>
-              <div class="interactions" id="int-diu12-3"></div>
+              <div class="interactions" id="int-Paellada Popular"></div>
+              <div class="participants-list" id="plist-Paellada Popular"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">16:30</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Recollir">
               <div class="event-header"><span class="event-title">📦 Recollir</span><span class="event-badge badge-sortida">Logística</span></div>
               <p class="event-desc">Hora de recollir les coses, deixar les habitacions netes i acomiadar-se de la masia. Últimes fotos, últimes abraçades.</p>
-              <div class="interactions" id="int-diu12-4"></div>
+              <div class="interactions" id="int-Recollir"></div>
+              <div class="participants-list" id="plist-Recollir"></div>
             </div>
           </div>
 
           <div class="event-row">
             <div class="event-time">18:00</div><div class="event-dot"></div>
-            <div class="event-card">
+            <div class="event-card" data-actid="Sortida">
               <div class="event-header"><span class="event-title">👋 Sortida</span><span class="event-badge badge-sortida">Fi</span></div>
               <p class="event-desc">Fins aviat! El casNOment s'acaba però els records queden per sempre. Bon viatge a tothom i gràcies per ser-hi! 🧡</p>
-              <div class="interactions" id="int-diu12-5"></div>
+              <div class="interactions" id="int-Sortida"></div>
+              <div class="participants-list" id="plist-Sortida"></div>
             </div>
           </div>
 
@@ -566,6 +630,19 @@
 
 </main>
 
+<!-- Modal nom -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-box">
+    <h3>🙋 Hi vull participar!</h3>
+    <p>Escriu el teu nom perquè tothom sàpiga que hi seràs.</p>
+    <input class="modal-input" id="nameInput" type="text" placeholder="El teu nom..." maxlength="40" />
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel·lar</button>
+      <button class="modal-confirm" onclick="confirmParticipation()">Apuntar-me! 🎉</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ── Firebase ──
   const firebaseConfig = {
@@ -581,15 +658,18 @@
   const auth = firebase.auth();
 
   let userId = null;
-  auth.signInAnonymously().then(cred => { userId = cred.user.uid; });
+  let authReady = false;
+  let pendingActions = [];
 
-  // ── Llista d'events ──
-  const eventIds = [
-    'div10-1','div10-2','div10-3','div10-4','div10-5',
-    'dis11-1','dis11-2','dis11-3','dis11-4','dis11-5',
-    'dis11-6','dis11-7','dis11-8','dis11-9','dis11-10',
-    'diu12-1','diu12-2','diu12-3','diu12-4','diu12-5'
-  ];
+  function whenReady(fn) {
+    if (authReady) fn();
+    else pendingActions.push(fn);
+  }
+
+  // ── Recollir tots els actId des dels data-actid del HTML ──
+  const eventIds = Array.from(document.querySelectorAll('.event-card[data-actid]'))
+    .map(el => el.dataset.actid);
+
   const emojis = [
     { key: 'heart', emoji: '❤️' },
     { key: 'fire',  emoji: '🔥' },
@@ -598,105 +678,171 @@
     { key: 'love',  emoji: '😍' }
   ];
 
+  // ── Autenticació anònima ──
+  auth.signInAnonymously().then(async cred => {
+    userId = cred.user.uid;
+
+    const partSnap = await db.collection('participations').where('userId', '==', userId).get();
+    partSnap.forEach(doc => {
+      const actId = doc.data().actId;
+      const btn = document.getElementById('pbtn-' + actId);
+      if (btn) btn.classList.add('joined');
+    });
+
+    const reactSnap = await db.collection('reactions').where('userId', '==', userId).get();
+    reactSnap.forEach(doc => {
+      const { actId, key } = doc.data();
+      const btn = document.getElementById('rbtn-' + actId + '-' + key);
+      if (btn) btn.classList.add('reacted');
+    });
+
+    authReady = true;
+    pendingActions.forEach(fn => fn());
+    pendingActions = [];
+  }).catch(err => console.error('Auth error:', err));
+
   // ── Construir botons d'interacció ──
   eventIds.forEach(id => {
     const container = document.getElementById('int-' + id);
     if (!container) return;
 
-    // Botó participació
     const pBtn = document.createElement('button');
     pBtn.className = 'participation-btn';
     pBtn.id = 'pbtn-' + id;
-    pBtn.innerHTML = `🙋 Hi vull participar  <span id="pcount-${id}" style="font-weight:900">0</span>`;
+    pBtn.innerHTML = '🙋 Hi vull participar <span id="pcount-' + id + '" style="font-weight:900;margin-left:4px">0</span>';
     pBtn.onclick = () => toggleParticipation(id);
     container.appendChild(pBtn);
 
-    // Botons reacció
-    emojis.forEach(({ key, emoji }) => {
+    emojis.forEach(function(e) {
       const btn = document.createElement('button');
       btn.className = 'reaction-btn';
-      btn.id = `rbtn-${id}-${key}`;
-      btn.innerHTML = `${emoji} <span class="reaction-count" id="rcount-${id}-${key}">0</span>`;
-      btn.onclick = () => toggleReaction(id, key, emoji);
+      btn.id = 'rbtn-' + id + '-' + e.key;
+      btn.innerHTML = e.emoji + ' <span class="reaction-count" id="rcount-' + id + '-' + e.key + '">0</span>';
+      btn.onclick = () => toggleReaction(id, e.key, e.emoji);
       container.appendChild(btn);
     });
 
-    // Listener temps real Firestore
-    db.collection('activities').doc(id).onSnapshot(doc => {
+    db.collection('activities').doc(id).onSnapshot(function(doc) {
       const data = doc.exists ? doc.data() : {};
-      document.getElementById(`pcount-${id}`).innerText = data.participants || 0;
-      emojis.forEach(({ key }) => {
-        document.getElementById(`rcount-${id}-${key}`).innerText = data[key] || 0;
+      const pcountEl = document.getElementById('pcount-' + id);
+      if (pcountEl) pcountEl.innerText = data.participants || 0;
+      emojis.forEach(function(e) {
+        const el = document.getElementById('rcount-' + id + '-' + e.key);
+        if (el) el.innerText = data[e.key] || 0;
       });
     });
 
-    // Restaurar estat de l'usuari des de localStorage
-    if (localStorage.getItem(`joined-${id}`) === '1') {
-      document.getElementById('pbtn-' + id).classList.add('joined');
-    }
-    emojis.forEach(({ key }) => {
-      if (localStorage.getItem(`reacted-${id}-${key}`) === '1') {
-        document.getElementById(`rbtn-${id}-${key}`).classList.add('reacted');
-      }
+    db.collection('participations').where('actId', '==', id).onSnapshot(function(snap) {
+      const listEl = document.getElementById('plist-' + id);
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      if (snap.empty) return;
+      const label = document.createElement('span');
+      label.style.cssText = 'font-size:0.75rem;color:var(--muted);margin-right:4px';
+      label.textContent = 'Hi van:';
+      listEl.appendChild(label);
+      snap.forEach(function(doc) {
+        const name = doc.data().name;
+        if (!name) return;
+        const pill = document.createElement('span');
+        pill.className = 'participant-pill';
+        pill.textContent = name;
+        listEl.appendChild(pill);
+      });
     });
   });
 
   // ── Participació ──
   async function toggleParticipation(id) {
-    if (!userId) return;
-    const ref = db.collection('participations').doc(`${userId}_${id}`);
+    if (!authReady) { whenReady(() => toggleParticipation(id)); return; }
+    const safeId = encodeURIComponent(id);
+    const ref = db.collection('participations').doc(userId + '_' + safeId);
     const actRef = db.collection('activities').doc(id);
-    const doc = await ref.get();
     const btn = document.getElementById('pbtn-' + id);
 
+    const doc = await ref.get();
     if (doc.exists) {
       await ref.delete();
       await actRef.set({ participants: firebase.firestore.FieldValue.increment(-1) }, { merge: true });
       btn.classList.remove('joined');
-      localStorage.removeItem(`joined-${id}`);
     } else {
-      await ref.set({ userId, actId: id, ts: Date.now() });
+      const name = await askName();
+      if (!name) return;
+      await ref.set({ userId: userId, actId: id, name: name, ts: Date.now() });
       await actRef.set({ participants: firebase.firestore.FieldValue.increment(1) }, { merge: true });
       btn.classList.add('joined');
-      localStorage.setItem(`joined-${id}`, '1');
     }
     animatePop(btn);
   }
 
   // ── Reaccions ──
   async function toggleReaction(id, key, emoji) {
-    if (!userId) return;
-    const ref = db.collection('reactions').doc(`${userId}_${id}_${key}`);
+    if (!authReady) { whenReady(() => toggleReaction(id, key, emoji)); return; }
+    const safeId = encodeURIComponent(id);
+    const ref = db.collection('reactions').doc(userId + '_' + safeId + '_' + key);
     const actRef = db.collection('activities').doc(id);
-    const doc = await ref.get();
-    const btn = document.getElementById(`rbtn-${id}-${key}`);
+    const btn = document.getElementById('rbtn-' + id + '-' + key);
 
+    const doc = await ref.get();
     if (doc.exists) {
       await ref.delete();
       await actRef.set({ [key]: firebase.firestore.FieldValue.increment(-1) }, { merge: true });
       btn.classList.remove('reacted');
-      localStorage.removeItem(`reacted-${id}-${key}`);
     } else {
-      await ref.set({ userId, actId: id, key, emoji });
+      await ref.set({ userId: userId, actId: id, key: key, emoji: emoji });
       await actRef.set({ [key]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
       btn.classList.add('reacted');
-      localStorage.setItem(`reacted-${id}-${key}`, '1');
     }
     animatePop(btn);
   }
+
+  // ── Modal nom ──
+  let _nameResolve = null;
+
+  function askName() {
+    return new Promise(function(resolve) {
+      _nameResolve = resolve;
+      const saved = localStorage.getItem('casnoment-username');
+      if (saved) { resolve(saved); return; }
+      document.getElementById('nameInput').value = '';
+      document.getElementById('nameModal').classList.add('open');
+      document.getElementById('nameInput').focus();
+    });
+  }
+
+  function closeModal() {
+    document.getElementById('nameModal').classList.remove('open');
+    if (_nameResolve) { _nameResolve(null); _nameResolve = null; }
+  }
+
+  function confirmParticipation() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) { document.getElementById('nameInput').focus(); return; }
+    localStorage.setItem('casnoment-username', name);
+    document.getElementById('nameModal').classList.remove('open');
+    if (_nameResolve) { _nameResolve(name); _nameResolve = null; }
+  }
+
+  document.getElementById('nameInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') confirmParticipation();
+    if (e.key === 'Escape') closeModal();
+  });
+  document.getElementById('nameModal').addEventListener('click', function(e) {
+    if (e.target === document.getElementById('nameModal')) closeModal();
+  });
 
   // ── Animació pop ──
   function animatePop(btn) {
     btn.classList.remove('pop');
     void btn.offsetWidth;
     btn.classList.add('pop');
-    btn.addEventListener('animationend', () => btn.classList.remove('pop'), { once: true });
+    btn.addEventListener('animationend', function() { btn.classList.remove('pop'); }, { once: true });
   }
 
   // ── Canvi de dia ──
   function showDay(day, tabEl) {
-    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.day-tab').forEach(function(t) { t.classList.remove('active'); });
     document.getElementById('day-' + day).classList.add('active');
     tabEl.classList.add('active');
   }
