@@ -333,6 +333,63 @@
       color: white; font-weight: 800; cursor: pointer; font-family: inherit;
     }
 
+    /* ══ GALERIA ══ */
+    #galeria { padding: 40px 0 60px; background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0)); }
+
+    .gallery-upload-area {
+      border: 2px dashed var(--accent); border-radius: var(--radius);
+      background: var(--accent-soft); padding: 40px; text-align: center;
+      margin-bottom: 36px; transition: background .2s;
+    }
+    .gallery-upload-area:hover { background: rgba(140,166,78,0.14); }
+    .gallery-upload-area p { margin: 10px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+    #gallery-file-input { display: none; }
+
+    .gallery-upload-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: white; padding: 14px 28px; border-radius: 14px; font-weight: 800;
+      font-size: 1rem; cursor: pointer; border: none; font-family: inherit;
+      box-shadow: var(--shadow-soft); transition: transform .18s ease;
+    }
+    .gallery-upload-btn:hover { transform: translateY(-2px); }
+
+    .gallery-upload-status {
+      display: none; margin-top: 14px; font-size: 0.9rem;
+      color: var(--accent-strong); font-weight: 700;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .gallery-empty {
+      grid-column: 1/-1; text-align: center; padding: 60px 20px;
+      color: var(--muted); font-size: 1rem;
+    }
+
+    .photo-card {
+      background: white; border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--line); box-shadow: var(--shadow-soft);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .photo-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .photo-card img { width: 100%; height: 220px; object-fit: cover; display: block; }
+    .photo-card-footer {
+      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .photo-like-btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+      border-radius: 999px; border: 1.5px solid rgba(118,111,97,0.14);
+      background: rgba(255,255,255,0.8); font-size: 0.88rem; cursor: pointer;
+      transition: .15s ease; font-family: inherit; color: var(--ink);
+    }
+    .photo-like-btn:hover { background: #ffe4e4; border-color: #f87171; }
+    .photo-like-btn.liked { background: #ffe4e4; border-color: #f87171; color: #b91c1c; }
+    .photo-date { font-size: 0.75rem; color: var(--muted); }
+
     @media (max-width: 980px) {
       .hero-grid, .grid-3, .grid-2 { grid-template-columns: 1fr; }
       .hero-copy { padding: 32px; }
@@ -358,6 +415,7 @@
     <nav>
       <ul>
         <li><a href="#programa">🎉 Programa</a></li>
+        <li><a href="#galeria">📸 Galeria</a></li>
         <li><a href="#informacio">Informació general</a></li>
         <li><a href="#recordatoris">Temes importants</a></li>
       </ul>
@@ -630,6 +688,26 @@
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section id="galeria">
+    <div class="container">
+      <div class="section-head"><div><h2>📸 Galeria compartida</h2><p style="margin:6px 0 0;color:var(--muted);font-size:0.96rem;">Penja les teves fotos i comparteix els millors moments!</p></div></div>
+
+      <div class="gallery-upload-area">
+        <label for="gallery-file-input" class="gallery-upload-btn">
+          📷 Penjar foto
+        </label>
+        <input type="file" id="gallery-file-input" accept="image/*" onchange="uploadPhoto(event)" />
+        <div id="gallery-upload-status" class="gallery-upload-status">⏳ Pujant la foto...</div>
+        <p>Formats acceptats: JPG, PNG, WEBP · Màxim 10 MB</p>
+      </div>
+
+      <div class="gallery-grid" id="gallery-grid">
+        <div class="gallery-empty">Encara no hi ha fotos. Sigues el primer en penjar-ne! 📷</div>
+      </div>
     </div>
   </section>
 
@@ -939,6 +1017,98 @@
     document.getElementById('day-' + day).classList.add('active');
     tabEl.classList.add('active');
   }
+
+  // ── GALERIA CLOUDINARY ──
+  const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dcuv7r91b/image/upload';
+  const CLOUDINARY_PRESET = 'casnoment_preset';
+
+  async function uploadPhoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { alert('La foto és massa gran (màxim 10 MB)'); return; }
+
+    const statusEl = document.getElementById('gallery-upload-status');
+    statusEl.style.display = 'block';
+    statusEl.textContent = '⏳ Pujant la foto...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('folder', 'casnoment');
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        await db.collection('photos').add({
+          url: data.secure_url,
+          likes: 0,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        statusEl.textContent = '✅ Foto pujada!';
+        setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+      } else {
+        throw new Error('No URL returned');
+      }
+    } catch (err) {
+      statusEl.textContent = '❌ Error pujant la foto. Torna-ho a intentar.';
+      console.error(err);
+    }
+    event.target.value = '';
+  }
+
+  async function likePhoto(photoId, btn) {
+    if (!userId) return;
+    const likeRef = db.collection('photoLikes').doc(userId + '_' + photoId);
+    const photoRef = db.collection('photos').doc(photoId);
+    const likeDoc = await likeRef.get();
+    if (likeDoc.exists) {
+      await likeRef.delete();
+      await photoRef.update({ likes: firebase.firestore.FieldValue.increment(-1) });
+      btn.classList.remove('liked');
+    } else {
+      await likeRef.set({ userId: userId, photoId: photoId });
+      await photoRef.update({ likes: firebase.firestore.FieldValue.increment(1) });
+      btn.classList.add('liked');
+    }
+  }
+
+  function renderGallery(photos, myLikes) {
+    const grid = document.getElementById('gallery-grid');
+    if (photos.length === 0) {
+      grid.innerHTML = '<div class="gallery-empty">Encara no hi ha fotos. Sigues el primer en penjar-ne! 📷</div>';
+      return;
+    }
+    grid.innerHTML = photos.map(function(p) {
+      const liked = myLikes.has(p.id);
+      const date = p.createdAt ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' }) : '';
+      return '<div class="photo-card">' +
+        '<img src="' + p.url + '" alt="Foto casNOment" loading="lazy" />' +
+        '<div class="photo-card-footer">' +
+          '<button class="photo-like-btn' + (liked ? ' liked' : '') + '" id="like-' + p.id + '" onclick="likePhoto(\'' + p.id + '\', this)">' +
+            '❤️ <span id="likecount-' + p.id + '">' + (p.likes || 0) + '</span>' +
+          '</button>' +
+          '<span class="photo-date">' + date + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  let myPhotoLikes = new Set();
+
+  // Escolta en temps real les fotos
+  db.collection('photos').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+    const photos = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+    renderGallery(photos, myPhotoLikes);
+  });
+
+  // Quan l'usuari estigui autenticat, carrega els seus likes de fotos
+  auth.onAuthStateChanged(function(user) {
+    if (!user) return;
+    db.collection('photoLikes').where('userId', '==', user.uid).get().then(function(snap) {
+      snap.forEach(function(d) { myPhotoLikes.add(d.data().photoId); });
+    });
+  });
 </script>
 
 </body>
